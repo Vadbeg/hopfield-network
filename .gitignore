@@ -61,6 +61,8 @@ db.sqlite3
 instance/
 .webassets-cache
 
+/images
+
 # Scrapy stuff:
 .scrapy
 
