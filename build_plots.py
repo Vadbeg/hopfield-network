@@ -7,7 +7,6 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 from modules.data.dataset import Dataset
-from modules.network.hopfield import HopfieldNetwork
 from modules.train import get_trained_model
 from config import Config
 
@@ -17,9 +16,12 @@ def get_weights_plot():
 
     image_paths_train = glob.glob(pathname='images_diff/train/*.*', recursive=True)
 
+    config = Config()
+    config.image_size = (64, 64)
+
     model = get_trained_model(image_paths=image_paths_train,
-                              image_size=Config.image_size,
-                              asynchronous=Config.asynchronous)
+                              image_size=config.image_size,
+                              asynchronous=config.asynchronous)
 
     plt.title(f'Weight heatmap.')
 
@@ -79,6 +81,8 @@ def get_image_num_iters_plot():
 
 
 def get_numbers_example():
+    """Builds plot with number calculation example"""
+
     image_paths_train = glob.glob(pathname='images_diff/train/*.*', recursive=True)
     image_paths_test = glob.glob(pathname='images_diff/test/*.*', recursive=True)
 
@@ -124,8 +128,6 @@ def get_numbers_example():
 
     fig.suptitle(f'Result of number predictions')
     plt.show()
-
-
 
 
 if __name__ == '__main__':
