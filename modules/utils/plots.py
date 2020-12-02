@@ -8,6 +8,21 @@ from cv2 import cv2
 
 
 def plot_images_compare(data: Dict[str, List[np.ndarray]]):
+    """
+    Creates plot with images.
+    Where rows are used for the same class image.
+    And columns for their type (result, prediction, original)
+
+    Example:
+
+    >> data = {
+    >>    'original_image': flatten_images_original,  # List[np.ndarray]
+    >>    'prediction_image': predictions  # List[np.ndarray]
+    >> }
+
+    :param data: dictionary with images to draw
+    """
+
     keys = list(data.keys())
 
     values_from_dict = data[keys[0]]

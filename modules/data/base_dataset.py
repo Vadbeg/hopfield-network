@@ -1,6 +1,5 @@
 """Module with base dataset"""
 
-
 from abc import ABC, abstractmethod
 
 

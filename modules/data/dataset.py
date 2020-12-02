@@ -49,7 +49,14 @@ class Dataset(BaseDataset):
         return bw_image_flatten
 
     @staticmethod
-    def __change_random_pixels__(image):
+    def __change_random_pixels__(image: np.ndarray) -> np.ndarray:
+        """
+        Randomly inverts pixels in image
+
+        :param image: image to change
+        :return: transformed image
+        """
+
         assert len(image.shape) == 2, f'Image needs to have one channel, current image shape: {image.shape}'
 
         num_of_pixels_to_change = int(image.shape[0] * image.shape[1] / 3)
@@ -62,7 +69,7 @@ class Dataset(BaseDataset):
 
         return image
 
-    def __read_image__(self, image_path) -> np.ndarray:
+    def __read_image__(self, image_path: str) -> np.ndarray:
         """
         Reads image from disk
 

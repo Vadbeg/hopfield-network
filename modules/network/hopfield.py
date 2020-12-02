@@ -12,6 +12,14 @@ class HopfieldNetwork:
     def __init__(self, train_data: List[np.ndarray],
                  asynchronous: bool = False,
                  verbose: bool = True):
+        """
+        Init methods
+
+        :param train_data: data for network training
+        :param asynchronous: if True uses async forward mode, else sync
+        :param verbose: if True shows progress bar
+        """
+
         self.train_data = train_data
         self.num_neurons = train_data[0].shape[0]
 
@@ -50,8 +58,8 @@ class HopfieldNetwork:
         Predicts data class
 
         :param data: list of ndarrays with data
-        :param num_iter: number of iterations for data passing
-        :param threshold: ???
+        :param num_iter: number of iterations for image restoring
+        :param threshold: threshold for sign ( sign(x - threshold) )
         :return: resulted data
         """
 
@@ -70,12 +78,26 @@ class HopfieldNetwork:
         return predicted_data
 
     @staticmethod
-    def __initialize_weights__(num_neurons: int):
+    def __initialize_weights__(num_neurons: int) -> np.ndarray:
+        """
+        Initialize weights for network
+
+        :param num_neurons: number of neurons
+        :return: network weights
+        """
+
         weights = np.zeros((num_neurons, num_neurons))
 
         return weights
 
-    def __get_rho__(self):
+    def __get_rho__(self) -> float:
+        """
+        Calculates average sum of values in one row.
+        Is used for data normalization.
+
+        :return: average sum of values in one row
+        """
+
         train_data_sum = np.sum(self.train_data)
 
         data_length = len(self.train_data)
@@ -85,6 +107,17 @@ class HopfieldNetwork:
         return rho
 
     def __forward__(self, initial_data: np.ndarray, threshold: float, num_iter: int = 20) -> np.ndarray:
+        """
+        Performs forward pass for data. It can use either synchronous or asynchronous way.
+        During synchronous pass it calculates new matrix for all values at the same time.
+        During ssynchronous pass it calculates new matrix for randomly selected values one after another.
+
+        :param initial_data: data to pass threw network
+        :param threshold: threshold for sign function
+        :param num_iter: number of iterations threw network
+        :return: resulted data
+        """
+
         copied_initial_data = np.copy(initial_data)
 
         if self.asynchronous:
@@ -125,6 +158,14 @@ class HopfieldNetwork:
         return copied_initial_data
 
     def __energy__(self, initial_data: np.ndarray, threshold: float) -> float:
+        """
+        Calculates energy value for given data
+
+        :param initial_data: data on which energy calculates
+        :param threshold: threshold for energy function
+        :return: energy value
+        """
+
         energy = - 0.5 * initial_data.dot(self.weights).dot(initial_data)
         energy += np.sum(initial_data * threshold)
 
