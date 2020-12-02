@@ -41,11 +41,15 @@ class Dataset(BaseDataset):
 
         threshold, bw_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY)
 
+        bw_image = np.int8(bw_image / 255)
+        bw_image = (bw_image * 2) - 1  # convert from 0s and 1s to -1 and 1
+
         bw_image_flatten = bw_image.flatten()
 
         return bw_image_flatten
 
-    def __change_random_pixels__(self, image):
+    @staticmethod
+    def __change_random_pixels__(image):
         assert len(image.shape) == 2, f'Image needs to have one channel, current image shape: {image.shape}'
 
         num_of_pixels_to_change = int(image.shape[0] * image.shape[1] / 3)
@@ -54,7 +58,7 @@ class Dataset(BaseDataset):
             x_idx = np.random.randint(0, image.shape[0])
             y_idx = np.random.randint(0, image.shape[1])
 
-            image[x_idx][y_idx] = int(not image[x_idx][y_idx])
+            image[x_idx][y_idx] = -1 if image[x_idx][y_idx] == 1 else 1
 
         return image
 

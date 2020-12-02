@@ -7,37 +7,28 @@ import matplotlib.pyplot as plt
 from cv2 import cv2
 
 
-def plot_true_pred_flatten_images(data: Dict[str, List[np.ndarray]]):
-    flatten_images_original_list = data['original_image']
-    flatten_images_noise_list = data['noise_image']
-    flatten_predictions_list = data['prediction_image']
+def plot_images_compare(data: Dict[str, List[np.ndarray]]):
+    keys = list(data.keys())
 
-    flatten_length_side = flatten_images_original_list[0].shape[0]
-    original_image_size = (int(np.sqrt(flatten_length_side)),
-                           int(np.sqrt(flatten_length_side)))
+    values_from_dict = data[keys[0]]
+    image_side_length = int(
+        np.sqrt(values_from_dict[0].shape[0])
+    )
 
-    fig, axs = plt.subplots(len(flatten_images_original_list), 3)
+    original_image_size = (image_side_length, image_side_length)
 
-    axs[0][0].set_title('Original binary')
-    axs[0][1].set_title('Noise binary')
-    axs[0][2].set_title('Predictor binary')
+    fig, axs = plt.subplots(len(values_from_dict), len(keys))
 
-    data = zip(flatten_images_original_list,
-               flatten_images_noise_list,
-               flatten_predictions_list)
+    for idx, curr_key in enumerate(keys):
+        axs[0][idx].set_title(curr_key)
 
-    for idx, (curr_original, curr_noise, curr_prediction) in enumerate(data):
+    for idx, row_values in enumerate(zip(*data.values())):
 
-        curr_original_image = np.reshape(curr_original,
-                                         newshape=original_image_size)
-        curr_noise_image = np.reshape(curr_noise,
-                                      newshape=original_image_size)
-        curr_pred_image = np.reshape(curr_prediction,
-                                     newshape=original_image_size)
+        for idx_of_row_image, curr_image_flatten in enumerate(row_values):
+            curr_image = np.reshape(curr_image_flatten,
+                                    newshape=original_image_size)
 
-        axs[idx][0].imshow(curr_original_image)
-        axs[idx][1].imshow(curr_noise_image)
-        axs[idx][2].imshow(curr_pred_image)
+            axs[idx][idx_of_row_image].imshow(curr_image)
 
     plt.tight_layout()
     plt.show()

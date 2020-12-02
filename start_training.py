@@ -5,7 +5,7 @@ from typing import List, Tuple
 
 from modules.data.dataset import Dataset
 from modules.network.hopfield import HopfieldNetwork
-from modules.utils.plots import plot_true_pred_flatten_images
+from modules.utils.plots import plot_images_compare
 
 
 def get_trained_model(image_paths: List[str],
@@ -20,22 +20,19 @@ def get_trained_model(image_paths: List[str],
     return model
 
 
-def evaluation(model: HopfieldNetwork, image_paths: List[str]):
-    dataset_noise = Dataset(list_of_paths=image_paths,
-                            image_size=image_size,
-                            add_noise=True)
-    flatten_images_noise = dataset_noise.get_all_flatten_images()
+def evaluation(model: HopfieldNetwork,
+               image_paths: List[str],
+               image_size: Tuple[int, int] = (256, 256)):
 
     dataset_original = Dataset(list_of_paths=image_paths,
                                image_size=image_size,
                                add_noise=False)
     flatten_images_original = dataset_original.get_all_flatten_images()
 
-    predictions = model.predict(data=flatten_images_noise, num_iter=100, threshold=50)
+    predictions = model.predict(data=flatten_images_original, num_iter=20, threshold=50)
 
     data = {
         'original_image': flatten_images_original,
-        'noise_image': flatten_images_noise,
         'prediction_image': predictions
     }
 
@@ -43,14 +40,19 @@ def evaluation(model: HopfieldNetwork, image_paths: List[str]):
 
 
 if __name__ == '__main__':
-    image_paths = glob.glob(pathname='images/*.*', recursive=True)[:2]
+    image_paths_train = glob.glob(pathname='images_diff/train/*.*', recursive=True)
+    image_paths_test = glob.glob(pathname='images_diff/test/*.*', recursive=True)
 
-    image_size = (64, 64)
+    # image_paths = glob.glob(pathname='images_same/*.*', recursive=True)
 
-    model = get_trained_model(image_paths=image_paths,
+    image_size = (28, 28)
+
+    model = get_trained_model(image_paths=image_paths_train,
                               image_size=image_size,
                               asynchronous=True)
 
-    data = evaluation(model=model, image_paths=image_paths)
+    data = evaluation(model=model,
+                      image_paths=image_paths_test,
+                      image_size=image_size)
 
-    plot_true_pred_flatten_images(data=data)
+    plot_images_compare(data=data)
