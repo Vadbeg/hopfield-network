@@ -37,7 +37,7 @@ class Dataset(BaseDataset):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         if self.add_noise:
-            image = self.__add_gaussian_noise__(image=image)
+            image = self.__change_random_pixels__(image=image)
 
         threshold, bw_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY)
 
@@ -45,7 +45,17 @@ class Dataset(BaseDataset):
 
         return bw_image_flatten
 
-    def __add_gaussian_noise__(self, image):
+    def __change_random_pixels__(self, image):
+        assert len(image.shape) == 2, f'Image needs to have one channel, current image shape: {image.shape}'
+
+        num_of_pixels_to_change = int(image.shape[0] * image.shape[1] / 3)
+
+        for i in range(num_of_pixels_to_change):
+            x_idx = np.random.randint(0, image.shape[0])
+            y_idx = np.random.randint(0, image.shape[1])
+
+            image[x_idx][y_idx] = int(not image[x_idx][y_idx])
+
         return image
 
     def __read_image__(self, image_path) -> np.ndarray:
