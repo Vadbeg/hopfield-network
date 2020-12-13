@@ -28,6 +28,8 @@ class HopfieldNetwork:
         self.asynchronous = asynchronous
         self.verbose = verbose
 
+        self.energy_list = list()  # in this list energy values will be saved
+
     def train(self):
         """Trains models using examples from train_data"""
 
@@ -120,6 +122,8 @@ class HopfieldNetwork:
 
         copied_initial_data = np.copy(initial_data)
 
+        self.energy_list = list()
+
         if self.asynchronous:
             curr_energy = self.__energy__(initial_data=copied_initial_data,
                                           threshold=threshold)
@@ -139,6 +143,8 @@ class HopfieldNetwork:
 
                     return copied_initial_data
 
+                self.energy_list.append(curr_energy)
+
                 curr_energy = curr_energy_new
         else:
             curr_energy = self.__energy__(initial_data=copied_initial_data,
@@ -152,6 +158,8 @@ class HopfieldNetwork:
 
                 if curr_energy_new == curr_energy:
                     return copied_initial_data
+
+                self.energy_list.append(curr_energy)
 
                 curr_energy = curr_energy_new
 

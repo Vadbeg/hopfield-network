@@ -17,7 +17,7 @@ def get_weights_plot():
     image_paths_train = glob.glob(pathname='images_diff/train/*.*', recursive=True)
 
     config = Config()
-    config.image_size = (64, 64)
+    config.image_size = (10, 10)
 
     model = get_trained_model(image_paths=image_paths_train,
                               image_size=config.image_size,
@@ -86,6 +86,15 @@ def get_numbers_example():
     image_paths_train = glob.glob(pathname='images_diff/train/*.*', recursive=True)
     image_paths_test = glob.glob(pathname='images_diff/test/*.*', recursive=True)
 
+    # image_paths_train_6 = ['images_diff/train2/6/img_442.jpg'] * 3
+    # image_paths_train_8 = ['images_diff/train2/8/img_176.jpg'] * 3
+    #
+    # image_paths_test_6 = glob.glob(pathname='images_diff/test2/6/*.*', recursive=True)
+    # image_paths_test_8 = glob.glob(pathname='images_diff/test2/8/*.*', recursive=True)
+    #
+    # image_paths_train = image_paths_train_6 + image_paths_train_8
+    # image_paths_test = image_paths_test_6 + image_paths_test_8
+
     config = Config()
     config.image_size = (28, 28)
     config.num_iter = 70
@@ -111,6 +120,9 @@ def get_numbers_example():
 
     fig, axs = plt.subplots(len(predictions), 3)
 
+    if len(axs.shape) < 2:
+        axs = [axs]
+
     axs[0][0].set_title(f'Original image')
     axs[0][1].set_title(f'Test image')
     axs[0][2].set_title(f'Pred image')
@@ -130,7 +142,45 @@ def get_numbers_example():
     plt.show()
 
 
+def get_energy_plot():
+    """Builts plot with energy values"""
+
+    image_paths_train = glob.glob(pathname='images_diff/train/*.*', recursive=True)[:1]
+    image_paths_test = glob.glob(pathname='images_diff/test/*.*', recursive=True)[:1]
+
+    config = Config()
+    config.image_size = (28, 28)
+    config.num_iter = 70
+    config.threshold = 100
+
+    model = get_trained_model(image_paths=image_paths_train,
+                              image_size=config.image_size,
+                              asynchronous=config.asynchronous)
+
+    dataset_test = Dataset(list_of_paths=image_paths_test,
+                           image_size=config.image_size,
+                           add_noise=False)
+    flatten_images_test = dataset_test.get_all_flatten_images()
+
+    predictions = model.predict(data=flatten_images_test,
+                                num_iter=config.num_iter,
+                                threshold=config.threshold)
+
+    energy_list = model.energy_list
+
+    fig, ax = plt.subplots()
+    plt.title(f'Energy values during iterations')
+
+    plt.ylabel(f'Energy')
+    plt.xlabel(f'Iter number')
+
+    sns.lineplot(x=range(len(energy_list)), y=energy_list, ax=ax)
+
+    plt.show()
+
+
 if __name__ == '__main__':
-    get_weights_plot()
-    get_image_num_iters_plot()
+    # get_weights_plot()
+    # get_image_num_iters_plot()
     get_numbers_example()
+    # get_energy_plot()
