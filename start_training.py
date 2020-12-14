@@ -35,9 +35,7 @@ def evaluation(model: HopfieldNetwork,
                                add_noise=add_noise)
     flatten_images_original = dataset_original.get_all_flatten_images()
 
-    predictions = model.predict(data=flatten_images_original,
-                                num_iter=num_iter,
-                                threshold=threshold)
+    predictions = model.predict(data=flatten_images_original)
 
     data = {
         'original_image': flatten_images_original,
@@ -71,7 +69,7 @@ if __name__ == '__main__':
 
         model = get_trained_model(image_paths=image_paths,
                                   image_size=Config.image_size,
-                                  asynchronous=Config.asynchronous)
+                                  asynchronous=False)
 
         data = evaluation(model=model,
                           image_paths=image_paths,

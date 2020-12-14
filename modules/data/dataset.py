@@ -49,17 +49,19 @@ class Dataset(BaseDataset):
         return bw_image_flatten
 
     @staticmethod
-    def __change_random_pixels__(image: np.ndarray) -> np.ndarray:
+    def __change_random_pixels__(image: np.ndarray, percent: float = 0.3) -> np.ndarray:
         """
         Randomly inverts pixels in image
 
         :param image: image to change
+        :param percent: percent of image to shuffle
         :return: transformed image
         """
+        image = np.copy(image)
 
         assert len(image.shape) == 2, f'Image needs to have one channel, current image shape: {image.shape}'
 
-        num_of_pixels_to_change = int(image.shape[0] * image.shape[1] / 3)
+        num_of_pixels_to_change = int(image.shape[0] * image.shape[1] * percent)
 
         for i in range(num_of_pixels_to_change):
             x_idx = np.random.randint(0, image.shape[0])

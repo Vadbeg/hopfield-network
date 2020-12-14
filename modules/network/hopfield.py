@@ -11,12 +11,14 @@ class HopfieldNetwork:
 
     def __init__(self, train_data: List[np.ndarray],
                  asynchronous: bool = False,
+                 projections: bool = True,
                  verbose: bool = True):
         """
         Init methods
 
         :param train_data: data for network training
         :param asynchronous: if True uses async forward mode, else sync
+        :param projections: if True uses projection training method, else Hebbs
         :param verbose: if True shows progress bar
         """
 
@@ -26,11 +28,27 @@ class HopfieldNetwork:
         self.weights = self.__initialize_weights__(num_neurons=self.num_neurons)
 
         self.asynchronous = asynchronous
+        self.projections = projections
         self.verbose = verbose
 
         self.energy_list = list()  # in this list energy values will be saved
 
     def train(self):
+        if self.projections:
+            self.__train_projection__()
+        else:
+            self.__train_hebbs__()
+
+    def predict(self, data: List[np.ndarray], num_iter: int = 20,
+                threshold: int = 0):
+        if self.projections:
+            predicted_data = self.__predict_projection__(data=data)
+        else:
+            predicted_data = self.__predict_hebbs__(data=data, num_iter=num_iter, threshold=threshold)
+
+        return predicted_data
+
+    def __train_hebbs__(self):
         """Trains models using examples from train_data"""
 
         rho = self.__get_rho__()
@@ -54,8 +72,33 @@ class HopfieldNetwork:
         self.weights = self.weights - diagonal_weights
         self.weights = self.weights / len(self.train_data)
 
-    def predict(self, data: List[np.ndarray], num_iter: int = 20,
-                threshold: int = 0) -> List[np.ndarray]:
+    @staticmethod
+    def __get_inverse_flatten__(matrix: np.ndarray) -> np.ndarray:
+        inverse_matrix = np.linalg.pinv(matrix.reshape(-1, 1))
+
+        return inverse_matrix
+        
+    def __train_projection__(self):
+        """Trains models with projection method using examples from train_data"""
+
+        copied_train_data = np.copy(self.train_data)
+
+        for curr_train_sample in tqdm(copied_train_data,
+                                      disable=not self.verbose,
+                                      postfix=f'Model training...'):
+
+            assert len(curr_train_sample.shape) == 1, \
+                f'Flatten your input! Now dim is: {curr_train_sample.shape}'
+
+            self.weights += curr_train_sample.reshape(-1, 1) @ self.__get_inverse_flatten__(curr_train_sample)
+
+        print(self.weights)
+        # self.weights = self.weights / len(self.train_data)
+
+        print(self.weights)
+
+    def __predict_hebbs__(self, data: List[np.ndarray], num_iter: int = 20,
+                          threshold: int = 0) -> List[np.ndarray]:
         """
         Predicts data class
 
@@ -72,9 +115,30 @@ class HopfieldNetwork:
         for curr_copied_sample in tqdm(copied_data,
                                        disable=not self.verbose,
                                        postfix=f'Predicting...'):
-            curr_prediction = self.__forward__(initial_data=curr_copied_sample,
-                                               threshold=threshold,
-                                               num_iter=num_iter)
+            curr_prediction = self.__forward_hebbs__(initial_data=curr_copied_sample,
+                                                     threshold=threshold,
+                                                     num_iter=num_iter)
+            predicted_data.append(curr_prediction)
+
+        return predicted_data
+
+    def __predict_projection__(self, data: List[np.ndarray]) -> List[np.ndarray]:
+        """
+        Predicts data class using projection method
+
+        :param data: list of ndarrays with data
+        :return: resulted data
+        """
+
+        copied_data = np.copy(data)
+
+        predicted_data = list()
+
+        for curr_copied_sample in tqdm(copied_data,
+                                       disable=not self.verbose,
+                                       postfix=f'Predicting...'):
+            curr_prediction = self.__forward_projection__(initial_data=curr_copied_sample)
+
             predicted_data.append(curr_prediction)
 
         return predicted_data
@@ -108,7 +172,7 @@ class HopfieldNetwork:
 
         return rho
 
-    def __forward__(self, initial_data: np.ndarray, threshold: float, num_iter: int = 20) -> np.ndarray:
+    def __forward_hebbs__(self, initial_data: np.ndarray, threshold: float, num_iter: int = 20) -> np.ndarray:
         """
         Performs forward pass for data. It can use either synchronous or asynchronous way.
         During synchronous pass it calculates new matrix for all values at the same time.
@@ -162,6 +226,30 @@ class HopfieldNetwork:
                 self.energy_list.append(curr_energy)
 
                 curr_energy = curr_energy_new
+
+        return copied_initial_data
+
+    def __forward_projection__(self, initial_data: np.ndarray):
+        """
+
+
+        :param initial_data:
+        :return:
+        """
+
+        copied_initial_data = np.copy(initial_data)
+
+        if self.asynchronous:
+            for _ in range(100_000):
+                neuron_idx = np.random.randint(0, self.num_neurons)
+
+                copied_initial_data[neuron_idx] = np.sign(
+                    self.weights[neuron_idx].T.dot(copied_initial_data)
+                )
+        else:
+
+            copied_initial_data = np.dot(copied_initial_data, self.weights)
+            copied_initial_data = np.sign(copied_initial_data)
 
         return copied_initial_data
 
